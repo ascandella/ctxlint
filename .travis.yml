@@ -1,0 +1,18 @@
+language: go
+go_import_path: github.com/sectioneight/ctxlint
+
+go:
+  - 1.6
+  - 1.7
+
+matrix:
+  fast_finish: true
+
+install:
+  - make dependencies
+
+script:
+  - make clean lint test
+
+after_success:
+  - '[ "${TRAVIS_GO_VERSION}" = "1.7" ] && make coveralls'
