@@ -31,6 +31,7 @@ dependencies:
 	@which overalls >/dev/null || go get -u github.com/go-playground/overalls
 	@which goveralls >/dev/null || go get -u -f github.com/mattn/goveralls
 	@which gocov >/dev/null || go get github.com/axw/gocov/gocov
+	@which golint >/dev/null || go get github.com/golang/lint/golint
 	@go get github.com/stretchr/testify/assert
 	@go get github.com/stretchr/testify/require
 
