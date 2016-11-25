@@ -35,6 +35,7 @@ func main() {
 	RunLint()
 }
 
+// RunLint runs the main lint logic, exported for tests
 func RunLint() {
 	// TODO(ai) flags for custom context types
 	flag.Parse()
@@ -124,14 +125,3 @@ func lintImportedPackage(pkg *build.Package, err error) {
 
 	lintFiles(files...)
 }
-
-func exitWithError(msg interface{}, code int) {
-	fmt.Fprintln(os.Stderr, msg)
-	Exiter(code)
-}
-
-// silly hacks to allow testing exit codes easily in the test suite.
-
-type exitFn func(int)
-
-var Exiter = os.Exit
