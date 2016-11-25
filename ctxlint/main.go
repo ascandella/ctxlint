@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sectioneight/ctxlint"
 )
@@ -40,10 +41,22 @@ func RunLint() {
 	switch flag.NArg() {
 	case 0:
 		lintDir(".")
-	case 1:
-		// TODO
 	default:
-		lintFiles(flag.Args()...)
+		for _, arg := range flag.Args() {
+			if strings.HasSuffix(arg, "/...") && isDir(arg[:len(arg)-4]) {
+				for _, dirname := range allPackagesInFS(arg) {
+					lintDir(dirname)
+				}
+			} else if isDir(arg) {
+				lintDir(arg)
+			} else if exists(arg) {
+				lintFiles(arg)
+			} else {
+				for _, pkgname := range importPaths([]string{arg}) {
+					lintPackage(pkgname)
+				}
+			}
+		}
 	}
 }
 
@@ -73,6 +86,21 @@ func lintFiles(filenames ...string) {
 	for _, p := range ps {
 		fmt.Printf("%v: %s\n", p.Position, p.Text)
 	}
+}
+
+func isDir(filename string) bool {
+	fi, err := os.Stat(filename)
+	return err == nil && fi.IsDir()
+}
+
+func exists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func lintPackage(pkgname string) {
+	pkg, err := build.Import(pkgname, ".", 0)
+	lintImportedPackage(pkg, err)
 }
 
 func lintImportedPackage(pkg *build.Package, err error) {

@@ -17,6 +17,7 @@ package main_test
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/sectioneight/ctxlint/ctxlint"
@@ -30,16 +31,54 @@ func TestLintCurrentDir(t *testing.T) {
 }
 
 func TestNoGoCode(t *testing.T) {
+	withTempDir(t, func(tmp string) {
+		defer withArgs(".", tmp)()
+
+		verifyExitCode(t, 0, RunLint)
+	})
+}
+
+func TestPathExpansion(t *testing.T) {
+	withTempDir(t, func(tmp string) {
+		defer withArgs("./...", tmp)()
+
+		verifyExitCode(t, 0, RunLint)
+	})
+}
+
+func TestLint_WithValidFile(t *testing.T) {
+	withTempDir(t, func(tmp string) {
+		defer withTempFile(t, tmp, "foo.go", "package main")()
+		defer withArgs(filepath.Join(tmp, "foo.go"))()
+		verifyExitCode(t, 0, RunLint)
+	})
+}
+
+func withTempFile(t testing.TB, dir, name, contents string) func() {
+	fpath := filepath.Join(dir, name)
+	require.NoError(t, ioutil.WriteFile(fpath, []byte(contents), os.ModePerm), "Error writing file")
+
+	return func() {
+		os.Remove(fpath)
+	}
+}
+
+func withTempDir(t testing.TB, fn func(dir string)) {
 	tmp, err := ioutil.TempDir("", "ctxlint")
-	require.NoError(t, err)
+	require.NoError(t, err, "Tempdir creation failed")
 
+	defer os.RemoveAll(tmp)
+
+	fn(tmp)
+}
+
+func withArgs(args ...string) func() {
 	oldArgs := os.Args
-	defer func() {
-		os.Args = oldArgs
-	}()
+	os.Args = append([]string{os.Args[0]}, args...)
 
-	os.Args = []string{os.Args[0], ".", tmp}
-	verifyExitCode(t, 0, RunLint)
+	return func() {
+		os.Args = oldArgs
+	}
 }
 
 func verifyExitCode(t testing.TB, expected int, fn func()) {
