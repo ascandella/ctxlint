@@ -46,6 +46,11 @@ func TestPathExpansion(t *testing.T) {
 	})
 }
 
+func TestPackageExpansion(t *testing.T) {
+	defer withArgs("github.com/sectioneight/ctxlint/...")()
+	verifyExitCode(t, 0, RunLint)
+}
+
 func TestLint_WithValidFile(t *testing.T) {
 	withTempDir(t, func(tmp string) {
 		defer withTempFile(t, tmp, "foo.go", "package main")()
