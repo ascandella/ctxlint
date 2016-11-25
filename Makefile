@@ -11,6 +11,7 @@ SOURCE_DEPS = *.go $(wildcard ctxlint/*.go)
 lint:
 	gofmt -d -s $(PKG_FILES) | tee -a $(LINT_LOG)
 	$(foreach dir,$(PKG_FILES),go tool vet $(VET_RULES) $(dir) 2>&1 | tee -a $(LINT_LOG);)
+	$(foreach dir,$(PKG_FILES),golint $(dir) 2>&1 | tee -a $(LINT_LOG);)
 	@[ ! -s $(LINT_LOG) ]
 
 .PHONY: test
@@ -30,6 +31,7 @@ dependencies:
 	@which overalls >/dev/null || go get -u github.com/go-playground/overalls
 	@which goveralls >/dev/null || go get -u -f github.com/mattn/goveralls
 	@which gocov >/dev/null || go get github.com/axw/gocov/gocov
+	@which golint >/dev/null || go get github.com/golang/lint/golint
 	@go get github.com/stretchr/testify/assert
 	@go get github.com/stretchr/testify/require
 
