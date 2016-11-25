@@ -5,6 +5,8 @@ COV_REPORT := overalls.coverprofile
 
 PKG_FILES = *.go ctxlint
 
+SOURCE_DEPS = *.go $(wildcard ctxlint/*.go)
+
 .PHONY: lint
 lint:
 	gofmt -d -s $(PKG_FILES) | tee -a $(LINT_LOG)
@@ -14,9 +16,10 @@ lint:
 .PHONY: test
 test: $(COV_REPORT)
 
-$(COV_REPORT): $(PKG_FILES)
+$(COV_REPORT): $(SOURCE_DEPS)
 	overalls -project=$(PROJECT_ROOT) -- -race -v | \
 		grep -v "No Go Test Files"
+	gocov convert $(COV_REPORT) | gocov report
 
 .PHONY: coveralls
 coveralls: $(COV_REPORT)
@@ -24,11 +27,18 @@ coveralls: $(COV_REPORT)
 
 .PHONY: dependencies
 dependencies:
-	@which overalls || go get -u github.com/go-playground/overalls
-	@which goveralls || go get -u -f github.com/mattn/goveralls
+	@which overalls >/dev/null || go get -u github.com/go-playground/overalls
+	@which goveralls >/dev/null || go get -u -f github.com/mattn/goveralls
+	@which gocov >/dev/null || go get github.com/axw/gocov/gocov
 	@go get github.com/stretchr/testify/assert
 	@go get github.com/stretchr/testify/require
 
 .PHONY: clean
 clean:
 	rm -f $(COV_REPORT) $(LINT_LOG)
+
+coverage.html: $(SOURCE_DEPS) $(COV_REPORT)
+	@which gocov-html >/dev/null || go get github.com/awx/gocov-html
+	gocov convert $(COV_REPORT) | gocov-html > coverage.html
+
+.DEFAULT_GOAL: test

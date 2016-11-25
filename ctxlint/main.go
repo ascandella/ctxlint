@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/sectioneight/ctxlint"
 )
@@ -34,16 +35,29 @@ func main() {
 	RunLint()
 }
 
+// RunLint runs the main lint logic, exported for tests
 func RunLint() {
 	// TODO(ai) flags for custom context types
 	flag.Parse()
 	switch flag.NArg() {
 	case 0:
 		lintDir(".")
-	case 1:
-		// TODO
 	default:
-		lintFiles(flag.Args()...)
+		for _, arg := range flag.Args() {
+			if strings.HasSuffix(arg, "/...") && isDir(arg[:len(arg)-4]) {
+				for _, dirname := range allPackagesInFS(arg) {
+					lintDir(dirname)
+				}
+			} else if isDir(arg) {
+				lintDir(arg)
+			} else if exists(arg) {
+				lintFiles(arg)
+			} else {
+				for _, pkgname := range importPaths([]string{arg}) {
+					lintPackage(pkgname)
+				}
+			}
+		}
 	}
 }
 
@@ -75,6 +89,21 @@ func lintFiles(filenames ...string) {
 	}
 }
 
+func isDir(filename string) bool {
+	fi, err := os.Stat(filename)
+	return err == nil && fi.IsDir()
+}
+
+func exists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func lintPackage(pkgname string) {
+	pkg, err := build.Import(pkgname, ".", 0)
+	lintImportedPackage(pkg, err)
+}
+
 func lintImportedPackage(pkg *build.Package, err error) {
 	if err != nil {
 		if _, nogo := err.(*build.NoGoError); nogo {
@@ -96,14 +125,3 @@ func lintImportedPackage(pkg *build.Package, err error) {
 
 	lintFiles(files...)
 }
-
-func exitWithError(msg interface{}, code int) {
-	fmt.Fprintln(os.Stderr, msg)
-	Exiter(code)
-}
-
-// silly hacks to allow testing exit codes easily in the test suite.
-
-type exitFn func(int)
-
-var Exiter = os.Exit
