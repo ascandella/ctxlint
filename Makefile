@@ -16,9 +16,10 @@ lint:
 .PHONY: test
 test: $(COV_REPORT)
 
-$(COV_REPORT): $(SOURC_DEPS)
+$(COV_REPORT): $(SOURCE_DEPS)
 	overalls -project=$(PROJECT_ROOT) -- -race -v | \
 		grep -v "No Go Test Files"
+	gocov convert $(COV_REPORT) | gocov report
 
 .PHONY: coveralls
 coveralls: $(COV_REPORT)
@@ -28,6 +29,7 @@ coveralls: $(COV_REPORT)
 dependencies:
 	@which overalls >/dev/null || go get -u github.com/go-playground/overalls
 	@which goveralls >/dev/null || go get -u -f github.com/mattn/goveralls
+	@which gocov >/dev/null || go get github.com/awx/gocov/gocov
 	@go get github.com/stretchr/testify/assert
 	@go get github.com/stretchr/testify/require
 
@@ -36,7 +38,6 @@ clean:
 	rm -f $(COV_REPORT) $(LINT_LOG)
 
 coverage.html: $(SOURCE_DEPS) $(COV_REPORT)
-	@which gocov >/dev/null || go get github.com/awx/gocov/gocov
 	@which gocov-html >/dev/null || go get github.com/awx/gocov-html
 	gocov convert $(COV_REPORT) | gocov-html > coverage.html
 
