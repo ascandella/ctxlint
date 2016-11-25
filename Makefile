@@ -11,6 +11,7 @@ SOURCE_DEPS = *.go $(wildcard ctxlint/*.go)
 lint:
 	gofmt -d -s $(PKG_FILES) | tee -a $(LINT_LOG)
 	$(foreach dir,$(PKG_FILES),go tool vet $(VET_RULES) $(dir) 2>&1 | tee -a $(LINT_LOG);)
+	$(foreach dir,$(PKG_FILES),golint $(dir) 2>&1 | tee -a $(LINT_LOG);)
 	@[ ! -s $(LINT_LOG) ]
 
 .PHONY: test

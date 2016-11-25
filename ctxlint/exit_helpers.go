@@ -28,4 +28,5 @@ func exitWithError(msg interface{}, code int) {
 
 type exitFn func(int)
 
+// Exiter is the os.Exit function to be overriden for tests
 var Exiter = os.Exit
