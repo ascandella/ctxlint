@@ -14,7 +14,6 @@
 
 package main
 
-
 /*
 This file holds a direct copy of the import path matching code of
 https://github.com/golang/go/blob/master/src/cmd/go/main.go. It can be
