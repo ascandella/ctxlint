@@ -9,7 +9,7 @@ Pre-alpha
 ## Compatibility
 
 Tests are using new Go 1.7 Subtests. Main code should compile on lower targets,
-but TravisCI is only configured to test 1.6 and 1.7 currently.
+but TravisCI is only configured to test 1.7 and tip.
 
 ## Licence
 
