@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	. "github.com/sectioneight/ctxlint"
@@ -57,10 +58,23 @@ func runTest(t testing.TB, path, testName string) {
 		sources[source] = sourceBytes
 	}
 
+	errOutput := filepath.Join(path, "expected.error")
+	var expectedError string
+	if _, err := os.Stat(errOutput); err == nil {
+		eb, err := ioutil.ReadFile(errOutput)
+		require.NoError(t, err, "Unable to read expected error file")
+		expectedError = strings.TrimSpace(string(eb))
+	}
+
 	l := Linter{}
 
 	problems, err := l.LintFiles(sources)
-	assert.NoError(t, err, "Unexpected error parsing files")
+	if expectedError != "" {
+		assert.Error(t, err, "Expected error parsing files")
+		assert.Equal(t, expectedError, err.Error(), "Expected errors to match")
+	} else {
+		require.NoError(t, err, "Expected success parsing files")
+	}
 	assert.Empty(t, problems)
 	// TODO add test case for err return from LintFiles (e.g. package mismatch)
 }
