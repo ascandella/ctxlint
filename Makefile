@@ -3,7 +3,7 @@ PROJECT_ROOT := github.com/sectioneight/ctxlint
 LINT_LOG := lint.log
 COV_REPORT := overalls.coverprofile
 
-PKG_FILES = *.go ctxlint
+PKG_FILES = . ctxlint
 
 SOURCE_DEPS = *.go $(wildcard ctxlint/*.go)
 
