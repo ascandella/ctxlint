@@ -14,7 +14,11 @@
 
 package ctxlint
 
-import "go/token"
+import (
+	"fmt"
+	"go/parser"
+	"go/token"
+)
 
 // A Linter handles walking the AST looking for context violations
 type Linter struct{}
@@ -29,6 +33,31 @@ type Problem struct {
 // LintFiles runs through a map of files (represented as byte slices)
 // and checks for context violations
 func (l Linter) LintFiles(files map[string][]byte) ([]Problem, error) {
-	// TODO
-	return nil, nil
+	if len(files) == 0 {
+		return nil, nil
+	}
+	pkg := &pkg{
+		fset:  token.NewFileSet(),
+		files: make(map[string]*file),
+	}
+	var pkgName string
+	for filename, src := range files {
+		f, err := parser.ParseFile(pkg.fset, filename, src, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+		if pkgName == "" {
+			pkgName = f.Name.Name
+		} else if f.Name.Name != pkgName {
+			return nil, fmt.Errorf("%s is in package %s, not %s", filename, f.Name.Name, pkgName)
+		}
+		pkg.files[filename] = &file{
+			pkg:      pkg,
+			f:        f,
+			fset:     pkg.fset,
+			src:      src,
+			filename: filename,
+		}
+	}
+	return pkg.lint(), nil
 }
