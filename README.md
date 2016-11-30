@@ -6,6 +6,11 @@ Lint for Go programs to check that context is propagated properly.
 
 Pre-alpha
 
+## Compatibility
+
+Tests are using new Go 1.7 Subtests. Main code should compile on lower targets,
+but TravisCI is only configured to test 1.7 and tip.
+
 ## Licence
 
 [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0)

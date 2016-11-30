@@ -3,14 +3,16 @@ PROJECT_ROOT := github.com/sectioneight/ctxlint
 LINT_LOG := lint.log
 COV_REPORT := overalls.coverprofile
 
-PKG_FILES = *.go ctxlint
+PKG_FILES = . ctxlint
 
 SOURCE_DEPS = *.go $(wildcard ctxlint/*.go)
 
+LINT_EXCLUDES := grep -v "testdata/"
+
 .PHONY: lint
 lint:
-	gofmt -d -s $(PKG_FILES) | tee -a $(LINT_LOG)
-	$(foreach dir,$(PKG_FILES),go tool vet $(VET_RULES) $(dir) 2>&1 | tee -a $(LINT_LOG);)
+	gofmt -d -s $(PKG_FILES) | $(LINT_EXCLUDES) | tee -a $(LINT_LOG)
+	$(foreach dir,$(PKG_FILES),go tool vet $(VET_RULES) $(dir) 2>&1 | $(LINT_EXCLUDES) | tee -a $(LINT_LOG);)
 	$(foreach dir,$(PKG_FILES),golint $(dir) 2>&1 | tee -a $(LINT_LOG);)
 	@[ ! -s $(LINT_LOG) ]
 
