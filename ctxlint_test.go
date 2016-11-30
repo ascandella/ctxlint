@@ -26,13 +26,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testCase struct {
-	name             string
-	successExpected  bool
-	expectedProblems []Problem
-	parseError       error
-}
-
 const testData = "testdata"
 
 func TestIntegrationExamples(t *testing.T) {
